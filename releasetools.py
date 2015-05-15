@@ -108,5 +108,5 @@ def AddTrustZoneAssertion(info):
     versions = m.group(1).split('|')
     if len(versions) and '*' not in versions:
       cmd = 'assert(oppo.verify_trustzone(' + ','.join(['"%s"' % tz for tz in versions]) + ') == "1");'
-      info.script.AppendExtra(cmd)
+      #info.script.AppendExtra(cmd)
   return
