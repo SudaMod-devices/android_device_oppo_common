@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 The CyanogenMod Project
+ *           (C) 2017 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +15,17 @@
  * limitations under the License.
  */
 
-package com.cyanogenmod.settings.device;
+package org.lineageos.settings.device;
 
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 
-import com.cyanogenmod.settings.device.utils.NodePreferenceActivity;
-
-import org.cyanogenmod.internal.util.ScreenType;
-
-public class ButtonSettings extends NodePreferenceActivity {
+public class ButtonSettingsActivity extends PreferenceActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.button_panel);
+
+        getFragmentManager().beginTransaction().replace(android.R.id.content,
+                new ButtonSettingsFragment()).commit();
     }
 }

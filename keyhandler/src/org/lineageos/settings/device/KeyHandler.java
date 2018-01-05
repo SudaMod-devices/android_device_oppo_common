@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015-2016 The CyanogenMod Project
+ * Copyright (C) 2017 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.cyanogenmod.settings.device;
+package org.lineageos.settings.device;
 
 import android.Manifest;
 import android.app.NotificationManager;
@@ -40,7 +41,7 @@ import android.view.KeyEvent;
 import com.android.internal.os.DeviceKeyHandler;
 import com.android.internal.util.ArrayUtils;
 
-import cyanogenmod.providers.CMSettings;
+import lineageos.providers.LineageSettings;
 
 public class KeyHandler implements DeviceKeyHandler {
 
@@ -88,9 +89,9 @@ public class KeyHandler implements DeviceKeyHandler {
 
         final Resources resources = mContext.getResources();
         mProximityTimeOut = resources.getInteger(
-                org.cyanogenmod.platform.internal.R.integer.config_proximityCheckTimeout);
+                org.lineageos.platform.internal.R.integer.config_proximityCheckTimeout);
         mProximityWakeSupported = resources.getBoolean(
-                org.cyanogenmod.platform.internal.R.bool.config_proximityCheckOnWake);
+                org.lineageos.platform.internal.R.bool.config_proximityCheckOnWake);
 
         if (mProximityWakeSupported) {
             mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -112,7 +113,7 @@ public class KeyHandler implements DeviceKeyHandler {
                 mGestureWakeLock.acquire(GESTURE_WAKELOCK_DURATION);
 
                 Intent intent = new Intent(
-                        cyanogenmod.content.Intent.ACTION_SCREEN_CAMERA_GESTURE);
+                        lineageos.content.Intent.ACTION_SCREEN_CAMERA_GESTURE);
                 mContext.sendBroadcast(intent, Manifest.permission.STATUS_BAR_SERVICE);
                 doHapticFeedback();
             }
@@ -124,25 +125,25 @@ public class KeyHandler implements DeviceKeyHandler {
                 Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
     }
 
-    public boolean handleKeyEvent(KeyEvent event) {
+    public KeyEvent handleKeyEvent(KeyEvent event) {
         int scanCode = event.getScanCode();
         boolean isKeySupported = scanCode == FLIP_CAMERA_SCANCODE;
         boolean isSliderModeSupported = sSupportedSliderModes.indexOfKey(scanCode) >= 0;
         if (!isKeySupported && !isSliderModeSupported) {
-            return false;
+            return event;
         }
 
         if (!hasSetupCompleted()) {
-            return false;
+            return event;
         }
 
         // We only want ACTION_UP event, except FLIP_CAMERA_SCANCODE
         if (scanCode == FLIP_CAMERA_SCANCODE) {
             if (event.getAction() != KeyEvent.ACTION_DOWN) {
-                return true;
+                return null;
             }
         } else if (event.getAction() != KeyEvent.ACTION_UP) {
-            return true;
+            return null;
         }
 
         if (isSliderModeSupported) {
@@ -151,9 +152,10 @@ public class KeyHandler implements DeviceKeyHandler {
         } else if (!mEventHandler.hasMessages(GESTURE_REQUEST)) {
             Message msg = getMessageForKeyEvent(scanCode);
             boolean defaultProximity = mContext.getResources().getBoolean(
-                org.cyanogenmod.platform.internal.R.bool.config_proximityCheckOnWakeEnabledByDefault);
-            boolean proximityWakeCheckEnabled = CMSettings.System.getInt(mContext.getContentResolver(),
-                    CMSettings.System.PROXIMITY_ON_WAKE, defaultProximity ? 1 : 0) == 1;
+                org.lineageos.platform.internal.R.bool.config_proximityCheckOnWakeEnabledByDefault);
+            boolean proximityWakeCheckEnabled = LineageSettings.System.getInt(
+                    mContext.getContentResolver(), LineageSettings.System.PROXIMITY_ON_WAKE,
+                    defaultProximity ? 1 : 0) == 1;
             if (mProximityWakeSupported && proximityWakeCheckEnabled && mProximitySensor != null) {
                 mEventHandler.sendMessageDelayed(msg, mProximityTimeOut);
                 processEvent(scanCode);
@@ -161,7 +163,7 @@ public class KeyHandler implements DeviceKeyHandler {
                 mEventHandler.sendMessage(msg);
             }
         }
-        return true;
+        return null;
     }
 
     private Message getMessageForKeyEvent(int scancode) {
@@ -198,8 +200,8 @@ public class KeyHandler implements DeviceKeyHandler {
         if (mVibrator == null) {
             return;
         }
-        boolean enabled = CMSettings.System.getInt(mContext.getContentResolver(),
-                CMSettings.System.TOUCHSCREEN_GESTURE_HAPTIC_FEEDBACK, 1) != 0;
+        boolean enabled = LineageSettings.System.getInt(mContext.getContentResolver(),
+                LineageSettings.System.TOUCHSCREEN_GESTURE_HAPTIC_FEEDBACK, 1) != 0;
         if (enabled) {
             mVibrator.vibrate(50);
         }
